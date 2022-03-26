@@ -224,6 +224,12 @@ class _DocumentMouseInteractorState extends State<DocumentMouseInteractor> with 
     );
   }
 
+  Offset _viewportOffsetForDoc(Offset interactorOffset) {
+    return _viewport.globalToLocal(
+      interactorOffset,
+    );
+  }
+
   void _onSelectionChange() {
     if (mounted) {
       // Use a post-frame callback to "ensure selection extent is visible"
@@ -538,7 +544,9 @@ class _DocumentMouseInteractorState extends State<DocumentMouseInteractor> with 
     // We have to re-calculate the drag end in the doc (instead of
     // caching the value during the pan update) because the position
     // in the document is impacted by auto-scrolling behavior.
-    final updatedDragEndInViewport = _interactorOffsetInViewport(_dragEndInInteractor!);
+    // We cannot use the function used for calculating the offset for autoscrolling here.
+    // This is a separate function which calculates the viewport offset for the Doc without considering the Scrollable.
+    final updatedDragEndInViewport = _viewportOffsetForDoc(_dragEndInInteractor!);
     _dragEndInDoc = _getDocOffset(updatedDragEndInViewport);
 
     _selectRegion(
@@ -635,8 +643,8 @@ class _DocumentMouseInteractorState extends State<DocumentMouseInteractor> with 
     }
   }
 
-  // Converts the given [offset] from the [DocumentInteractor]'s coordinate
-  // space to the [DocumentLayout]'s coordinate space.
+  /// Converts the given [offset] from the [DocumentInteractor]'s coordinate
+  /// space to the [DocumentLayout]'s coordinate space.
   Offset _getDocOffset(Offset offset) {
     return _docLayout.getDocumentOffsetFromAncestorOffset(offset, context.findRenderObject()!);
   }
